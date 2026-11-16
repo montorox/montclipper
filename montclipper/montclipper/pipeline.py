@@ -188,6 +188,11 @@ class Producer:
                 "spoiler": False, "violent_open": False, "facecam": None, "reason": "heuristic (no Claude)"}
 
     def produce(self, d, media, off, a):
+        from .common import licence_module
+        lic = licence_module()
+        if lic and not lic.ok_recent():
+            log("licence", "MontClipper Pro isn't activated on this computer, so no clip was made.")
+            return None
         t0 = time.time()
         s, e = d["start"], d["end"]
         now = datetime.datetime.now()

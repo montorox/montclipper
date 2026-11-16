@@ -54,7 +54,8 @@ def cmd_licence(a):
     email = a.email or input("The email of your Skool account (Chris Ife Studio Premium): ").strip()
     code = a.code if a.code is not None else (
         "" if a.move else input("The Premium code from the MontClipper Pro lesson: ").strip())
-    ok, msg = lic.activate(email, code, move=a.move)
+    skool = a.name if a.name is not None else "" if a.move else input("Your name exactly as it shows on Skool: ").strip()
+    ok, msg = lic.activate(email, code, move=a.move, skool=skool)
     print("\n" + msg + "\n")
     return 0 if ok else 1
 
@@ -127,7 +128,7 @@ def main():
     sub.add_parser("open").set_defaults(fn=cmd_open)
     sub.add_parser("dashboard").set_defaults(fn=cmd_open)
     sub.add_parser("check").set_defaults(fn=cmd_check)
-    lp = sub.add_parser("licence"); lp.add_argument("email", nargs="?"); lp.add_argument("--code")
+    lp = sub.add_parser("licence"); lp.add_argument("email", nargs="?"); lp.add_argument("--code"); lp.add_argument("--name", help="your name exactly as it shows on Skool")
     lp.add_argument("--move", action="store_true")
     lp.set_defaults(fn=cmd_licence)
     a = ap.parse_args()
