@@ -67,7 +67,9 @@ DEFAULTS = {
     "clip_min": 15, "clip_max": 75,
     "lookback": 75, "lookahead": 30,
     "vertical": True, "wide": True,
-    "use_claude": True,
+    "use_claude": True,            # use the AI (Claude Code or Codex) to find and judge moments
+    "agent": "auto",               # auto | claude | codex: which AI judges the moments
+    "codex_model": "",             # empty = your Codex default model
     "max_parallel_renders": 2,
     "brand": "none",               # your clips channel name, e.g. "ClipOga": a small mark with it on 9:16
     "kicker": "STREAM CLIPS",
@@ -197,8 +199,24 @@ def extract_json(text):
                 continue
     raise ValueError("no JSON in model output: " + text[:300])
 
+def agent():
+    """Which AI does the judging: "claude" (Claude Code) or "codex" (OpenAI Codex).
+    config "agent" or $MONTCLIPPER_AGENT can force one; "auto" uses the one MontClipper was started from,
+    else whichever is installed."""
+    a = (os.environ.get("MONTCLIPPER_AGENT") or load_config().get("agent") or "auto").strip().lower()
+    if a in ("claude", "codex"):
+        return a
+    has = lambda n: exe(n) != n
+    if os.environ.get("CODEX_THREAD_ID") and has("codex"):
+        return "codex"
+    if os.environ.get("CLAUDECODE") and has("claude"):
+        return "claude"
+    return "claude" if has("claude") or not has("codex") else "codex"
+
 def claude(prompt, model="sonnet", read_dir=None, timeout=240):
-    """Headless Claude Code call. Returns the result text."""
+    """Headless AI call (Claude Code, or Codex when that is the agent). Returns the result text."""
+    if agent() == "codex":
+        return codex(prompt, read_dir=read_dir, timeout=max(timeout, 420))
     cmd = ["claude", "-p", "--model", model, "--strict-mcp-config", "--disable-slash-commands",
            "--no-session-persistence", "--setting-sources", "", "--output-format", "json"]
     if read_dir:
@@ -216,6 +234,36 @@ def claude(prompt, model="sonnet", read_dir=None, timeout=240):
     if d.get("is_error"):
         raise RuntimeError("claude error: " + str(d.get("result"))[:300])
     return d.get("result", "")
+
+def codex(prompt, read_dir=None, timeout=420):
+    """Headless Codex call: the images the prompt names are attached, nothing can be changed (read-only)."""
+    import re as _re, uuid
+    CACHE.mkdir(parents=True, exist_ok=True)
+    imgs = [m for m in _re.findall(r"(\S+\.(?:jpg|jpeg|png))", prompt) if Path(m).is_file()]
+    out = CACHE / f"codex-{uuid.uuid4().hex[:8]}.txt"
+    cmd = [exe("codex"), "exec", "--skip-git-repo-check", "--ephemeral", "-s", "read-only", "--color", "never",
+           "-o", str(out)]
+    m = load_config().get("codex_model")
+    if m:
+        cmd += ["-m", m]
+    for i in imgs:
+        cmd += ["-i", i]
+    cmd += ["-C", str(read_dir or CACHE), "-"]
+    if imgs:
+        prompt = ("The images this message names are attached to it: look at them. Do not run any commands; "
+                  "answer from the attachments and the text.\n\n" + prompt)
+    else:
+        prompt = "Do not run any commands; answer from the text.\n\n" + prompt
+    try:
+        with CLAUDE_LOCK:
+            r = subprocess.run(cmd, input=prompt, capture_output=True, text=True, timeout=timeout,
+                               cwd=str(read_dir or CACHE))
+        txt = out.read_text() if out.exists() else ""
+        if r.returncode != 0 or not txt.strip():
+            raise RuntimeError("codex failed: " + (r.stderr or r.stdout)[-500:])
+        return txt
+    finally:
+        out.unlink(missing_ok=True)
 
 def notify(title, text):
     try:

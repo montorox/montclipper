@@ -7,7 +7,7 @@
   python3 mc.py status                             what is being watched right now
   python3 mc.py check                              check that everything is installed
 """
-import argparse, getpass, json, shutil, subprocess, sys, time, urllib.parse, urllib.request
+import argparse, getpass, json, os, shutil, subprocess, sys, time, urllib.parse, urllib.request
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from montclipper.common import load_config, CACHE, CLIPS, WHISPER_MODEL, SECRETS, disk_free_gb, AUDIO_PY, PRO, HOME, open_path, exe, LIVE, LITE_MAX_CLIPS
@@ -23,18 +23,22 @@ def hms(s):
 def cmd_check(_):
     ok = True
     names = {"streamlink": "stream recorder", "yt-dlp": "video downloader", "ffmpeg": "video editor",
-             "ffprobe": "video checker", "whisper-cli": "speech-to-text", "claude": "Claude Code"}
+             "ffprobe": "video checker", "whisper-cli": "speech-to-text"}
     print("\nMontClipper check\n")
     for t, label in names.items():
         p = shutil.which(t) or (exe(t) != t)
         print(f"  {'✅' if p else '❌'} {label} ({t})")
         ok &= bool(p)
     print(f"  {'✅' if WHISPER_MODEL.exists() else '❌'} speech model")
+    from montclipper.common import agent
+    ag = agent(); has = exe(ag) != ag
+    print(f"  {'✅' if has else '❌'} AI that judges the clips ({'Codex' if ag == 'codex' else 'Claude Code'})")
+    ok &= has
     sec = json.loads(SECRETS.read_text()) if SECRETS.exists() else {}
     print(f"  {'✅' if AUDIO_PY.exists() else '❌ not installed'}: music checker")
     gb = disk_free_gb()
     print(f"  {'✅' if gb > 15 else '⚠️ '} free disk space: {gb:.0f} GB")
-    print("\n" + ("Everything is ready." if ok else "Something is missing. Ask Claude: \"MontClipper, fix my setup\".") + "\n")
+    print("\n" + ("Everything is ready." if ok else "Something is missing. Ask Claude or Codex: \"MontClipper, fix my setup\".") + "\n")
     return 0 if ok else 1
 
 def need_licence():
@@ -54,13 +58,21 @@ def cmd_licence(a):
     print("\n" + msg + "\n")
     return 0 if ok else 1
 
+def sandboxed():
+    """Codex's sandbox blocks the GPU (speech-to-text), the network and the clip judge: MontClipper must run outside it."""
+    if os.environ.get("CODEX_SANDBOX"):
+        print("\nMontClipper can't run inside Codex's sandbox: speech-to-text needs the graphics chip and the clip judge "
+              "needs Codex itself. Run this same command again with full access (outside the sandbox).\n")
+        return True
+    return False
+
 def cmd_watch(a):
     if not LIVE:
         print("\nLive clipping (clips minutes after the moment, while the streamer is still live) is part of "
               "MontClipper Pro, in Chris Ife Studio Premium: https://dub.sh/chrisifestudio\n"
               "This edition clips finished streams. Tell Claude: \"MontClipper, clip this stream: <link>\"\n")
         return 1
-    if need_licence():
+    if sandboxed() or need_licence():
         return 1
     from montclipper.live import watch
     cfg = load_config()
@@ -70,7 +82,7 @@ def cmd_watch(a):
     watch(a.sources, cfg, once=a.once)
 
 def cmd_vod(a):
-    if need_licence():
+    if sandboxed() or need_licence():
         return 1
     from montclipper.vod import clip_vod
     cfg = load_config()

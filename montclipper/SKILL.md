@@ -1,6 +1,6 @@
 ---
 name: montclipper
-description: MontClipper Lite clips finished streams (Twitch or YouTube videos), up to 5 clips each. Claude finds the best moments (chat spikes, streamer reactions, a transcript read every 2 minutes) and makes ready-to-post clips in ~/MontClipper/Upload to Socials - 9:16 and 16:9 videos with captions, a cover/thumbnail for each, and upload notes. Use when the user says MontClipper, "clip this stream", "watch <streamer>", "clip the VOD", "show me my clips", or wants stream clips for Shorts, TikTok or Reels.
+description: MontClipper Lite clips finished streams (Twitch or YouTube videos), up to 5 clips each. The AI (Claude Code or Codex) finds the best moments (chat spikes, streamer reactions, a transcript read every 2 minutes) and makes ready-to-post clips in ~/MontClipper/Upload to Socials - 9:16 and 16:9 videos with captions, a cover/thumbnail for each, and upload notes. Use when the user says MontClipper, "clip this stream", "watch <streamer>", "clip the VOD", "show me my clips", or wants stream clips for Shorts, TikTok or Reels.
 ---
 
 # MontClipper
@@ -8,6 +8,13 @@ description: MontClipper Lite clips finished streams (Twitch or YouTube videos),
 The engine is this skill folder. Run it with the launcher `<this folder>/mc` (it uses MontClipper's own
 Python; on Windows run it in Git Bash, or use `<this folder>/mc.cmd`). The user's clips, recordings and settings are in `~/MontClipper` (or `$MONTCLIPPER_HOME`).
 The plain-language guide is `<this folder>/USER-GUIDE.md` (a copy is in `~/MontClipper/User guide.md`).
+
+Works in **Claude Code and Codex**. The engine judges clips with the AI it was started from (`codex exec` under
+Codex, `claude -p` under Claude Code, else whichever is installed); `"agent": "codex"` or `"claude"` in
+`~/MontClipper/config.json` forces one. In Codex, run `setup.sh` and every `mc` command **outside the sandbox** (request escalated
+permissions / full access, and ask the user to approve): inside it, speech-to-text can't use the graphics chip, downloads
+fail and the clip judge (`codex exec`) can't start. `mc` refuses to run in the sandbox and says so. Never work around
+this (no stand-in scripts, no judging clips yourself): ask for the permission.
 
 Assume the user is **not technical**: do everything for them, and reply in short, plain words
 (no flags, no paths unless asked, no jargon).

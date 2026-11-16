@@ -4,7 +4,8 @@ MontClipper Lite turns a stream that has ended into clips that are ready to post
 (MontClipper Pro also clips streams **while they are still live** and sends every clip to your phone.
 It's in Chris Ife Studio Premium: https://dub.sh/chrisifestudio)
 
-You don't need to know anything technical. You talk to Claude, and Claude does the rest.
+You don't need to know anything technical. You talk to Claude, and Claude does the rest. (Using Codex instead? It works the same way: wherever this guide
+says Claude, talk to Codex.)
 
 ---
 

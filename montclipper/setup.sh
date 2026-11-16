@@ -10,11 +10,12 @@ echo "  engine: $SKILL"
 echo "  your clips folder: $H"
 
 missing=""
-TOOLS="ffmpeg ffprobe streamlink yt-dlp uv curl claude"
+TOOLS="ffmpeg ffprobe streamlink yt-dlp uv curl"
 [ "$WIN" = 1 ] || TOOLS="$TOOLS whisper-cli"      # on Windows, setup downloads whisper.cpp itself
 for t in $TOOLS; do
   command -v "$t" >/dev/null 2>&1 || missing="$missing $t"
 done
+command -v claude >/dev/null 2>&1 || command -v codex >/dev/null 2>&1 || missing="$missing claude-or-codex"
 if [ -n "$missing" ]; then
   echo ""
   echo "Missing:$missing"
@@ -28,7 +29,7 @@ if [ -n "$missing" ]; then
     echo "Install on a Mac with Homebrew (https://brew.sh):"
     echo "  brew install ffmpeg streamlink yt-dlp whisper-cpp uv"
   fi
-  echo "Claude Code: https://claude.com/claude-code"
+  echo "AI agent: Claude Code (https://claude.com/claude-code) or Codex (https://chatgpt.com/codex)"
   echo "Then run this setup again."
   exit 1
 fi

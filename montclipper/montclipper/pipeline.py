@@ -153,6 +153,18 @@ class Producer:
             cand["state"] = "done"; return
         self.made.append((d["start"], d["end"]))
         self.made_titles.append(d.get("title", ""))
+        # streamers move their webcam mid-stream: locate it again on a frame from inside this clip
+        if cfg.get("use_claude", True):
+            fp = jd / f"c{cand['id']}_clip.jpg"
+            if grab_frame(media, off + ((d["start"] + d["end"]) / 2 - a), fp, width=1280):
+                try:
+                    box = J.find_facecam(fp, jd, cfg["judge_model"])
+                    if box != d["facecam"]:
+                        log("facecam", f"{name}: webcam is somewhere else in this clip, using the new place")
+                    d["facecam"] = box
+                    channel_set(name, facecam=box, facecam_checks=0)
+                except Exception as e:
+                    log("facecam", "clip check failed, keeping the last place:", e)
         from .common import PROTECT
         self.rendering += 1
         PROTECT.on = True
