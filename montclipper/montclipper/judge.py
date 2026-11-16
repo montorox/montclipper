@@ -139,7 +139,8 @@ Return ONLY JSON: {{"facecam": true/false, "x": left%, "y": top%, "w": width%, "
     try:
         r = extract_json(claude(prompt, model=model, read_dir=work_dir))
     except Exception as e:
-        log("facecam", "detect failed:", e); return None
+        log("facecam", "detect failed, will retry on the next moment:", e)
+        raise
     if not r.get("facecam"):
         return None
     box = [max(0, r["x"] / 100), max(0, r["y"] / 100), r["w"] / 100, r["h"] / 100]
@@ -151,8 +152,9 @@ Return ONLY JSON: {{"facecam": true/false, "x": left%, "y": top%, "w": width%, "
         pad = Image.new("RGB", (crop.width + 40, crop.height + 40), (40, 40, 40)); pad.paste(crop, (20, 20))
         cp = Path(work_dir) / "facecam_crop.jpg"; pad.save(cp, quality=90)
         q = f"""Read this image: {cp}
-It should be a crop of ONLY a streamer's webcam panel. Is the webcam fully inside with little
-extra game footage? Return ONLY JSON: {{"ok": true/false, "fix": "<if not ok: which edges to move
+It should be a crop of ONLY a streamer's webcam panel. Is the whole webcam inside (the streamer's
+face and body never cut by an edge), with little extra game footage? Chat or alerts drawn over part of
+the webcam are fine: keep them inside rather than cutting the webcam. Return ONLY JSON: {{"ok": true/false, "fix": "<if not ok: which edges to move
 and by how many percent of the crop, e.g. top +20 means move the top edge down 20%>",
 "dx_left": 0, "dx_right": 0, "dy_top": 0, "dy_bottom": 0}} where each d is percent of the crop
 size to move that edge INWARD (positive) or OUTWARD (negative)."""
@@ -162,7 +164,9 @@ size to move that edge INWARD (positive) or OUTWARD (negative)."""
             break
         if v.get("ok"):
             break
-        l, rr, t, b = (float(v.get(k, 0)) / 100 for k in ("dx_left", "dx_right", "dy_top", "dy_bottom"))
+        # small nudges only: a big inward move is how a face gets cut in half
+        l, rr, t, b = (min(15.0, max(-25.0, float(v.get(k, 0) or 0))) / 100
+                       for k in ("dx_left", "dx_right", "dy_top", "dy_bottom"))
         nx, ny = x + l * w, y + t * h
         nw, nh = w * (1 - l - rr), h * (1 - t - b)
         if nw < 0.05 or nh < 0.05:

@@ -1,7 +1,7 @@
 """Chat readers (Twitch IRC live, YouTube live, VOD replays) and chat scoring."""
 import json, re, socket, ssl, subprocess, threading, time, random, os, urllib.request
 from pathlib import Path
-from .common import log, append_jsonl, load_secrets
+from .common import log, append_jsonl, load_secrets, exe
 
 BOTS = {"nightbot", "streamelements", "streamlabs", "moobot", "fossabot", "wizebot", "sery_bot",
         "soundalerts", "kofistreambot", "pokemoncommunitygame", "botrixoficial", "blerp"}

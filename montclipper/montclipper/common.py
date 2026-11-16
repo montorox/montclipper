@@ -104,11 +104,15 @@ def ytdlp_auth():
     b = load_config().get("youtube_browser")
     return ["--cookies-from-browser", b] if b else []
 
+PROTECT = threading.local()   # set while a clip renders: its helpers ignore Ctrl+C
+
 def run(cmd, check=True, capture=True, timeout=None, **kw):
     if cmd and cmd[0] == "yt-dlp":
         cmd = cmd[:1] + ytdlp_auth() + cmd[1:]
     if cmd:
         cmd = [exe(cmd[0])] + list(cmd[1:])
+    if getattr(PROTECT, "on", False):
+        kw = {**detach(), **kw}   # a clip being made finishes even if the user presses Ctrl+C
     r = subprocess.run(cmd, capture_output=capture, text=True, timeout=timeout, **kw)
     if check and r.returncode != 0 and "not a bot" in (r.stderr or ""):
         raise RuntimeError("YouTube is asking to sign in (too many downloads). Fix: tell Claude "

@@ -8,7 +8,7 @@ import json, os, re, tempfile
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from .common import run, ROOT, RENDER_LOCK, FONT_BOLD
+from .common import run, ROOT, RENDER_LOCK, FONT_BOLD, CACHE
 from .media import to_wav, transcribe_words, probe_video, probe_duration, grab_frame
 
 FONTS = ROOT / "fonts"
@@ -205,7 +205,8 @@ def render(src, meta, decision, out_dir, cfg):
     fps = min(60, round(fps) or 30)
     brand = cfg.get("brand", "none")
     kicker = cfg.get("kicker", "STREAM CLIPS")
-    with tempfile.TemporaryDirectory(dir=str(out_dir.parent)) as td:
+    CACHE.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=str(CACHE)) as td:
         wav = to_wav(src, os.path.join(td, "a.wav"))
         words = transcribe_words(wav)
         music = handle_music(src, words, td, cfg, decision)

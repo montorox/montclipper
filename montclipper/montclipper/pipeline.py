@@ -72,6 +72,7 @@ class Producer:
         self.made_titles = []    # titles, so Claude does not repeat a joke
         self.judged = 0
         self.stats = {"judged": 0, "clips": 0, "skipped": 0}
+        self.rendering = 0       # clips being made right now (stopping waits for them)
         (self.dir / "judge").mkdir(parents=True, exist_ok=True)
         self.decisions = self.dir / "decisions.jsonl"
 
@@ -118,10 +119,16 @@ class Producer:
         sheet = contact_sheet(frames, [f"{t:.0f}s" for t in times[:len(frames)]], jd / f"c{cand['id']}_sheet.jpg")
         name = self.meta["channel"]
         ch = channel_get(name)
-        if cfg.get("use_claude", True) and ("facecam" not in ch or ch.get("facecam_checks", 0) >= 40):
+        # look again after 40 clips (layouts change), or after 5 if no facecam was found
+        # (the camera may come on later, or the first frame was a full-screen scene)
+        recheck = 5 if ch.get("facecam") is None else 40
+        if cfg.get("use_claude", True) and ("facecam" not in ch or ch.get("facecam_checks", 0) >= recheck):
             fp = jd / f"c{cand['id']}_full.jpg"
             if grab_frame(media, off + (cand["t"] - a), fp, width=1280):
-                channel_set(name, facecam=J.find_facecam(fp, jd, cfg["judge_model"]), facecam_checks=0)
+                try:
+                    channel_set(name, facecam=J.find_facecam(fp, jd, cfg["judge_model"]), facecam_checks=0)
+                except Exception:
+                    pass   # a failed check is not "no facecam": try again on the next moment
                 ch = channel_get(name)
         need_face = False
         if not cfg.get("use_claude", True):
@@ -146,10 +153,19 @@ class Producer:
             cand["state"] = "done"; return
         self.made.append((d["start"], d["end"]))
         self.made_titles.append(d.get("title", ""))
+        from .common import PROTECT
+        self.rendering += 1
+        PROTECT.on = True
         try:
             self.produce(d, media, off, a)
         except Exception as e:
             log("edit", f"#{cand['id']} render failed: {e}")
+            if d.get("_folder"):
+                import shutil
+                shutil.rmtree(d["_folder"], ignore_errors=True)
+        finally:
+            PROTECT.on = False
+            self.rendering -= 1
         cand["state"] = "done"
 
     def heuristic(self, cand, lines):
@@ -167,6 +183,7 @@ class Producer:
         safe = clean_name(title)
         out = CLIPS / clean_name(f"{now:%Y-%m-%d %H%M} {self.meta['channel']} - {title}")
         out.mkdir(parents=True, exist_ok=True)
+        d["_folder"] = str(out)   # removed again if the render fails, so no half-made clip is left
         cut = out / "_src.mp4"
         run(["ffmpeg", "-y", "-v", "error", "-ss", f"{off + (s - a):.3f}", "-i", str(media), "-t", f"{e - s:.3f}",
              "-c:v", "libx264", "-preset", "ultrafast", "-crf", "14", "-c:a", "aac", "-b:a", "256k", str(cut)])
