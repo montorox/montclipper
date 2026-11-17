@@ -18,7 +18,6 @@ Stuck, or want to see what others are making? [Join Chris Ife Studio on Skool](h
 
 - A Mac or a Windows PC with about 5 GB free
 - Claude Code (https://claude.com/claude-code) or Codex (https://chatgpt.com/codex)
-- Mac: Homebrew (https://brew.sh). Windows: Git for Windows, `winget install Git.Git`
 
 Your agent installs the rest for you (FFmpeg, yt-dlp, whisper.cpp and uv). It asks first.
 
@@ -31,18 +30,6 @@ Open Claude Code or Codex and say:
 It downloads about 2.5 GB once (the speech model and the music checker). Restart Claude Code (or Codex) when it's done.
 
 If a command fails on your computer, tell your agent. It reads the error and fixes it.
-
-### Windows, step by step
-
-1. Open "Terminal" from the Start menu and paste these one at a time, then close and reopen Terminal:
-   ```
-   winget install Git.Git
-   winget install Gyan.FFmpeg
-   winget install Streamlink.Streamlink
-   winget install yt-dlp.yt-dlp
-   winget install astral-sh.uv
-   ```
-2. Open Claude Code or Codex and give it the install sentence above. It runs the setup in Git Bash.
 
 ## Make your first clips
 

@@ -22,7 +22,8 @@ Assume the user is **not technical**: do everything for them, and reply in short
 ## First use
 If `~/MontClipper/tools-audio` doesn't exist, set it up. Mac: check for Homebrew, then (asking first)
 `brew install ffmpeg streamlink yt-dlp whisper-cpp uv`. Windows: (asking first) `winget install` Git.Git,
-Gyan.FFmpeg, Streamlink.Streamlink, yt-dlp.yt-dlp, astral-sh.uv, then use Git Bash. Then `bash <this folder>/setup.sh`. It downloads about
+Gyan.FFmpeg, Streamlink.Streamlink, yt-dlp.yt-dlp, astral-sh.uv (Windows may show a "make changes" prompt: tell the user to click Yes; new tools may not be on PATH until a
+new shell, so look in `%LOCALAPPDATA%/Microsoft/WinGet/Links` or ask the user to restart Claude Code, then carry on), then use Git Bash. Then `bash <this folder>/setup.sh`. It downloads about
 2.5 GB once (speech model, music checker). Finish with `<this folder>/mc check`. If a step fails on this computer,
 read the error and fix it yourself, including in this skill's files, rather than handing it to the user.
 
