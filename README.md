@@ -5,14 +5,34 @@ moments, and every clip comes out ready: a vertical video for Shorts, TikTok and
 word-by-word captions, a title on screen, the streamer's credit, a cover image for each, and a notes file with the
 caption, description and hashtags. MontClipper Lite makes up to 5 clips per stream.
 
-**Want clips while the streamer is still live?** MontClipper Pro clips live streams 1 to 3 minutes after each
-moment and sends every clip to your phone, so you post first. It's in
-[Chris Ife Studio Premium](https://dub.sh/chrisifestudio).
+> **🎮 Built for GTA 6 launch week.** GTA 6 is out on November 19, and every big streamer will play it live for hours.
+> MontClipper already knows the game: it skips story spoilers (viewers hate them), keeps the violent bits out of the
+> first seconds so YouTube keeps ads on your clip, and credits the streamer on every clip, which clipping programs
+> ask for. Set it up and test it on a stream before launch day.
+
+## Free or Pro?
+
+On TikTok and Shorts, the first good clip of a moment gets the views. The free version clips a stream after it ends.
+**MontClipper Pro clips it while it's still live**, and the clip is on your phone 1 to 3 minutes after the moment,
+while other clippers are still waiting for the stream to finish.
+
+| | MontClipper Lite (this repo) | MontClipper Pro |
+|---|---|---|
+| Finished streams (Twitch, YouTube) | ✅ up to 5 clips per stream | ✅ up to 12, or as many as you ask for |
+| **Live streams, clipped while they're live** | ❌ | ✅ Twitch, YouTube and Kick |
+| **Every clip sent to your phone** (Telegram, with the cover and caption) | ❌ | ✅ |
+| Several streamers at once, starts by itself when they go live | ❌ | ✅ |
+| Twitch viewer clips as an extra signal for the best moments | ❌ | ✅ |
+| Vertical + wide clips, captions, title, credit, cover, upload notes | ✅ | ✅ |
+| No GTA 6 spoilers, ad-safe openings, music check | ✅ | ✅ |
+| Price | Free | Included in Chris Ife Studio Premium |
+
+**[Get MontClipper Pro in Chris Ife Studio Premium →](https://dub.sh/chrisifestudio)**
 
 Works with **Claude Code** and **Codex**. Everything runs on your own Mac or PC. No account, no API key and nothing to pay
 beyond your Claude or ChatGPT plan.
 
-Stuck, or want to see what others are making? [Join Chris Ife Studio on Skool](https://dub.sh/chrisifestudio).
+Stuck, or want to see what others are making? [Join Chris Ife Studio on Skool](https://dub.sh/chrisifestudio), free.
 
 ## What you need
 
